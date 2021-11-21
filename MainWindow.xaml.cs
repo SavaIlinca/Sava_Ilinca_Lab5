@@ -45,13 +45,13 @@ namespace Sava_Ilinca_Lab5
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            customerVSource = (CollectionViewSource)FindResource("customerViewSource");
+            customerVSource = ((System.Windows.Data.CollectionViewSource)(this.FindResource("customerViewSource")));
             customerVSource.Source = ctx.Customers.Local;
             ctx.Customers.Load();
-            customerOrdersVSource = (CollectionViewSource)FindResource("customerOrdersViewSource");
+            customerOrdersVSource = ((System.Windows.Data.CollectionViewSource)(this.FindResource("customerOrdersViewSource")));
             //customerOrdersVSource.Source = ctx.Orders.Local;
             BindDataGrid();
-            inventoryVSource = (CollectionViewSource)FindResource("inventoryViewSource");
+            inventoryVSource = ((System.Windows.Data.CollectionViewSource)(this.FindResource("inventoryViewSource")));
             inventoryVSource.Source = ctx.Inventories.Local;
             ctx.Inventories.Load();
             ctx.Orders.Load();
@@ -63,10 +63,10 @@ namespace Sava_Ilinca_Lab5
             //cmbInventory.DisplayMemberPath = "Make";
             cmbInventory.SelectedValuePath = "CarId";
 
-            CollectionViewSource customerViewSource = (CollectionViewSource)FindResource("customerViewSource");
+            System.Windows.Data.CollectionViewSource customerViewSource = ((System.Windows.Data.CollectionViewSource)(this.FindResource("customerViewSource")));
             // Load data by setting the CollectionViewSource.Source property:
             // customerViewSource.Source = [generic data source]
-            CollectionViewSource inventoryViewSource = (CollectionViewSource)FindResource("inventoryViewSource");
+            System.Windows.Data.CollectionViewSource inventoryViewSource = ((System.Windows.Data.CollectionViewSource)(this.FindResource("inventoryViewSource")));
             // Load data by setting the CollectionViewSource.Source property:
             // inventoryViewSource.Source = [generic data source]
         }
@@ -218,7 +218,7 @@ namespace Sava_Ilinca_Lab5
                     var editedOrder = ctx.Orders.FirstOrDefault(s => s.OrderId == curr_id);
                     if (editedOrder != null)
                     {
-                        editedOrder.CustId = int.Parse(cmbCustomers.SelectedValue.ToString());
+                        editedOrder.CustId = Int32.Parse(cmbCustomers.SelectedValue.ToString());
                         editedOrder.CarId = Convert.ToInt32(cmbInventory.SelectedValue.ToString());
                         //salvam modificarile
                         ctx.SaveChanges();
@@ -276,12 +276,20 @@ namespace Sava_Ilinca_Lab5
         private void btnNew_Click(object sender, RoutedEventArgs e)
         {
             action = ActionState.New;
+            ReInitialize();
+            BindingOperations.ClearBinding(firstNameTextBox, TextBox.TextProperty);
+            BindingOperations.ClearBinding(lastNameTextBox, TextBox.TextProperty);
+            SetValidationBinding();
+
 
         }
 
         private void btnEdit_Click(object sender, RoutedEventArgs e)
         {
             action = ActionState.Edit;
+            BindingOperations.ClearBinding(firstNameTextBox, TextBox.TextProperty);
+            BindingOperations.ClearBinding(lastNameTextBox, TextBox.TextProperty);
+            SetValidationBinding();
 
         }
 
@@ -356,6 +364,29 @@ namespace Sava_Ilinca_Lab5
         {
             ReInitialize();
         }
+        private void SetValidationBinding()
+        {
+            Binding firstNameValidationBinding = new Binding();
+            firstNameValidationBinding.Source = customerVSource;
+            firstNameValidationBinding.Path = new PropertyPath("FirstName");
+            firstNameValidationBinding.NotifyOnValidationError = true;
+            firstNameValidationBinding.Mode = BindingMode.TwoWay;
+            firstNameValidationBinding.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            //string required
+            firstNameValidationBinding.ValidationRules.Add(new StringNotEmpty());
+            firstNameTextBox.SetBinding(TextBox.TextProperty, firstNameValidationBinding);
+            Binding lastNameValidationBinding = new Binding();
+            lastNameValidationBinding.Source = customerVSource;
+            lastNameValidationBinding.Path = new PropertyPath("LastName");
+            lastNameValidationBinding.NotifyOnValidationError = true;
+            lastNameValidationBinding.Mode = BindingMode.TwoWay;
+            lastNameValidationBinding.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            //string min length validator
+            lastNameValidationBinding.ValidationRules.Add(new StringMinLengthValidator());
+            lastNameTextBox.SetBinding(TextBox.TextProperty, lastNameValidationBinding); //setare binding nou
+        }
     }
 }
+
+
 
